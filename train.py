@@ -12,6 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.args import get_train_args
 from utils.helper import make_env
 from models.agent import Agent
+import envs
 
 
 if __name__ == "__main__":

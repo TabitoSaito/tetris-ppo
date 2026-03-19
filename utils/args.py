@@ -8,7 +8,7 @@ import tyro
 
 @dataclass
 class TrainArgs:
-    config: str = "configs/train/default.yaml"
+    config: str = "default.yaml"
     """config file"""
     exp_name: str = os.path.basename(__file__)[: -len(".py")]
     """the name of this experiment"""
@@ -75,12 +75,14 @@ class TrainArgs:
 
 
 def get_train_args():
-    tmp_args = tyro.cli(TrainArgs, args=["--config", "configs/train/default.yaml"] if "--config" not in sys.argv else None)
+    tmp_args = tyro.cli(TrainArgs, args=["--config", "default.yaml"] if "--config" not in sys.argv else None)
 
-    with open(tmp_args.config, "r") as f:
+    with open("configs/train/" + tmp_args.config, "r") as f:
         conf = yaml.safe_load(f)
 
     args = tyro.cli(TrainArgs, default=TrainArgs(**conf))
+
+    args.config = "configs/train/" + args.config
 
     return args
 
@@ -152,11 +154,13 @@ class TuneArgs:
 
 
 def get_tune_args():
-    tmp_args = tyro.cli(TuneArgs, args=["--config", "configs/tune/default.yaml"] if "--config" not in sys.argv else None)
+    tmp_args = tyro.cli(TuneArgs, args=["--config", "default.yaml"] if "--config" not in sys.argv else None)
 
-    with open(tmp_args.config, "r") as f:
+    with open("configs/tune/" + tmp_args.config, "r") as f:
         conf = yaml.safe_load(f)
 
     args = tyro.cli(TuneArgs, default=TuneArgs(**conf))
+
+    args.config = "configs/tune/" + args.config
 
     return args

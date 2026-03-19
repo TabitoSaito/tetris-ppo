@@ -5,9 +5,9 @@ metric_last_n_average_window: 50 # window over witch the metric gets averaged
 direction: "maximize" # direction in witch to optimize
 aggregation_type: "average" # aggregation type for multiple environments
 target_scores: # lower and upper bound for reward per environment
-  CartPole-v1: 
-    - 0
-    - 500
+  GridWorld-v0: 
+    - 0.7
+    - 1
 
 # hyperparameter options
 learning_rate: # range for learning rate tuning
