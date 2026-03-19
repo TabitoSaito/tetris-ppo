@@ -1,0 +1,46 @@
+config: "configs/tune/default.yaml" # path to config
+script: "train.py" # training script to run
+metric: "charts/episodic_return" # metric to use for tuning
+metric_last_n_average_window: 50 # window over witch the metric gets averaged
+direction: "maximize" # direction in witch to optimize
+aggregation_type: "average" # aggregation type for multiple environments
+target_scores: # lower and upper bound for reward per environment
+  CartPole-v1: 
+    - 0
+    - 500
+
+# hyperparameter options
+learning_rate: # range for learning rate tuning
+  min: 0.0003 # lower bound
+  max: 0.003 # upper bound
+  log: true # use logarithmic distribution
+num_minibatches: # options for number of minibatches
+  - 1
+  - 2
+  - 4
+update_epochs: # options for number of epochs per update
+  - 1
+  - 2
+  - 4
+  - 8
+num_steps: # options for number of steps to run in each environment per policy rollout
+  - 5 
+  - 16
+  - 32
+  - 64
+  - 128
+vf_coef: # range for coefficient of the value function
+  min: 0 # lower bound
+  max: 5 # upper bound
+  log: false # use logarithmic distribution
+max_grad_norm: # range for the maximum norm for the gradient clipping
+  min: 0 # lower bound
+  max: 5 # upper bound
+  log: false # use logarithmic distribution
+total_timesteps: 100000
+num_envs: 16
+
+# trial options
+storage: "sqlite:///tune.db" # storage location of tuning database
+num_trials: 100 # number of trials to optimize over
+num_seeds: 3 # number of seeds/experiments per trial
