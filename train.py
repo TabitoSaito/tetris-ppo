@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if args.track:
         import wandb
 
-        wandb.init(
+        run = wandb.init(
             project=args.wandb_project_name,
             entity=args.wandb_entity,
             sync_tensorboard=True,
@@ -70,6 +70,16 @@ if __name__ == "__main__":
     next_obs, _ = envs.reset(seed=args.seed)
     next_obs = torch.Tensor(next_obs).to(device)
     next_done = torch.zeros(args.num_envs).to(device)
+
+    if wandb.run.resumed:
+        global_step = run.summary.get("charts/global_step") + 1
+        api = wandb.Api()
+        run = api.run(f"{run.entity}/{run.project}/{run.id}")
+        model = run.file("files/agent.pt")
+        model.download(f"wandb/{run_name}/")
+        agent.load_state_dict(torch.load(f"wandb/{run_name}/files/agent.pt", map_location=device))
+        agent.eval()
+        print(f"resumed at global step {global_step}")
 
     for iteration in range(1, args.num_iterations + 1):
         # Annealing the rate if instructed to do so.
@@ -178,13 +188,13 @@ if __name__ == "__main__":
                 nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
                 optimizer.step()
 
-            if args.track:
-                if epoch % args.checkpoint_frequency == 0:
-                    torch.save(agent.state_dict(), f"{wandb.run.dir}/agent.pt")
-                    wandb.save(f"{wandb.run.dir}/agent.pt", policy="now")
-
             if args.target_kl is not None and approx_kl > args.target_kl:
                 break
+        
+        if args.track:
+            if iteration % args.checkpoint_frequency == 0:
+                torch.save(agent.state_dict(), f"{wandb.run.dir}/agent.pt")
+                wandb.save(f"{wandb.run.dir}/agent.pt", policy="now")
 
         y_pred, y_true = b_values.cpu().numpy(), b_returns.cpu().numpy()
         var_y = np.var(y_true)
@@ -201,6 +211,7 @@ if __name__ == "__main__":
         writer.add_scalar("losses/explained_variance", explained_var, global_step)
         print("SPS:", int(global_step / (time.time() - start_time)))
         writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
+        writer.add_scalar("charts/global_step", global_step, global_step)
 
     envs.close()
     writer.close()

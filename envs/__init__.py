@@ -7,3 +7,10 @@ register(
     max_episode_steps=30,
     additional_wrappers=(FlattenObservation.wrapper_spec(),)
 )
+
+register(
+    id="FloorPainter-v0",
+    entry_point="envs.floor_painter:FloorPainterEnv",
+    max_episode_steps=500,
+    additional_wrappers=(FlattenObservation.wrapper_spec(),)
+)
