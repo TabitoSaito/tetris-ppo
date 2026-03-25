@@ -7,7 +7,15 @@ import tyro
 
 
 @dataclass
-class TrainArgs:
+class RangeOptions:
+    min: float = 0
+    max: float = 1
+    log: bool = False
+
+
+@dataclass
+class Args:
+    """---------------- Train ----------------"""
     config: str = "default.yaml"
     """config file"""
     exp_name: str = os.path.basename(__file__)[: -len(".py")]
@@ -73,31 +81,7 @@ class TrainArgs:
     num_iterations: int = 0
     """the number of iterations (computed in runtime)"""
 
-
-def get_train_args():
-    tmp_args = tyro.cli(TrainArgs, args=["--config", "default.yaml"] if "--config" not in sys.argv else None)
-
-    with open("configs/train/" + tmp_args.config, "r") as f:
-        conf = yaml.safe_load(f)
-
-    args = tyro.cli(TrainArgs, default=TrainArgs(**conf))
-
-    args.config = "configs/train/" + args.config
-
-    return args
-
-
-@dataclass
-class RangeOptions:
-    min: float = 0
-    max: float = 1
-    log: bool = False
-
-
-@dataclass
-class TuneArgs:
-    config: str = "configs/tune/default.yaml"
-    """config file"""
+    """---------------- Tune ----------------"""
     script: str = "train.py"
     """training script to run"""
     metric: str = "charts/episodic_return"
@@ -113,37 +97,35 @@ class TuneArgs:
     })
     """lower and upper bound for reward per environment"""
 
-    learning_rate: RangeOptions = field(default_factory=lambda: RangeOptions(
+    learning_rate_o: RangeOptions = field(default_factory=lambda: RangeOptions(
         min=0.0003,
         max=0.003, 
         log=True
         )
     )
     """range for learning rate tuning"""
-    num_minibatches: list = field(default_factory=lambda:[1, 2, 4])
+    num_minibatches_o: list = field(default_factory=lambda:[1, 2, 4])
     """options for number of minibatches"""
-    update_epochs: list = field(default_factory=lambda:[1, 2, 4, 8])
+    update_epochs_o: list = field(default_factory=lambda:[1, 2, 4, 8])
     """options for number of epochs per update"""
-    num_steps: list = field(default_factory=lambda:[5, 16, 32, 64, 128])
+    num_steps_o: list = field(default_factory=lambda:[5, 16, 32, 64, 128])
     """options for number of steps to run in each environment per policy rollout"""
-    vf_coef: RangeOptions = field(default_factory=lambda: RangeOptions(
+    vf_coef_o: RangeOptions = field(default_factory=lambda: RangeOptions(
         min=0, 
         max=5, 
         log=False
         )
     )
     """range for coefficient of the value function"""
-    max_grad_norm: RangeOptions = field(default_factory=lambda: RangeOptions(
+    max_grad_norm_o: RangeOptions = field(default_factory=lambda: RangeOptions(
         min=0, 
         max=5, 
         log=False
         )
     )
     """range for the maximum norm for the gradient clipping"""
-    total_timesteps: int = 100000
+    total_timesteps_per_trial: int = 100000
     """total timesteps of each trial"""
-    num_envs: int = 16
-    """the number of parallel game environments"""
     storage: str = "sqlite:///tune.db"
     """storage location of tuning database"""
 
@@ -152,15 +134,16 @@ class TuneArgs:
     num_seeds: int = 3
     """number of seeds/experiments per trial"""
 
+def _get_args() -> Args:
+    tmp_args = tyro.cli(Args, args=["--config", "default.yaml"] if "--config" not in sys.argv else None)
 
-def get_tune_args():
-    tmp_args = tyro.cli(TuneArgs, args=["--config", "default.yaml"] if "--config" not in sys.argv else None)
-
-    with open("configs/tune/" + tmp_args.config, "r") as f:
+    with open("configs/" + tmp_args.config, "r") as f:
         conf = yaml.safe_load(f)
 
-    args = tyro.cli(TuneArgs, default=TuneArgs(**conf))
+    args = tyro.cli(Args, default=Args(**conf))
 
-    args.config = "configs/tune/" + args.config
+    args.config = "configs/" + args.config
 
     return args
+
+args = _get_args()

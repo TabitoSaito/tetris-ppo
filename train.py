@@ -9,14 +9,13 @@ import torch.optim as optim
 
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.args import get_train_args
+from utils.args import args
 from utils.helper import make_env
 from models.agent import Agent
 import envs
 
 
 if __name__ == "__main__":
-    args = get_train_args()
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size

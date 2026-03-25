@@ -1,5 +1,7 @@
-# config: "test.yaml" # path to config
-exp_name: "full_rnd" # the name of this experiment
+# ---------------- Train ---------------- #
+
+# config: "default.yaml" # path to config
+exp_name: "full_rng" # the name of this experiment
 seed: 1 # seed of the experiment
 torch_deterministic: true # if toggled, `torch.backends.cudnn.deterministic=False`
 cuda: true # if toggled, cuda will be enabled by default
@@ -27,3 +29,49 @@ ent_coef: 0.01 # coefficient of the entropy
 vf_coef: 1.5 # coefficient of the value function
 max_grad_norm: 4 # the maximum norm for the gradient clipping
 target_kl: null # the target KL divergence threshold
+
+# ---------------- Tune ---------------- #
+script: "train.py" # training script to run
+metric: "charts/episodic_return" # metric to use for tuning
+metric_last_n_average_window: 50 # window over witch the metric gets averaged
+direction: "maximize" # direction in witch to optimize
+aggregation_type: "average" # aggregation type for multiple environments
+target_scores: # lower and upper bound for reward per environment
+  FloorPainter-v0: 
+    - -40
+    - 40
+
+# hyperparameter options
+learning_rate_o: # range for learning rate tuning
+  min: 0.0003 # lower bound
+  max: 0.003 # upper bound
+  log: true # use logarithmic distribution
+num_minibatches_o: # options for number of minibatches
+  - 1
+  - 2
+  - 4
+update_epochs_o: # options for number of epochs per update
+  - 1
+  - 2
+  - 4
+  - 8
+num_steps_o: # options for number of steps to run in each environment per policy rollout
+  - 5 
+  - 16
+  - 32
+  - 64
+  - 128
+vf_coef_o: # range for coefficient of the value function
+  min: 0 # lower bound
+  max: 5 # upper bound
+  log: false # use logarithmic distribution
+max_grad_norm_o: # range for the maximum norm for the gradient clipping
+  min: 0 # lower bound
+  max: 5 # upper bound
+  log: false # use logarithmic distribution
+total_timesteps_per_trial: 100000
+
+# trial options
+storage: "sqlite:///tune.db" # storage location of tuning database
+num_trials: 100 # number of trials to optimize over
+num_seeds: 3 # number of seeds/experiments per trial
