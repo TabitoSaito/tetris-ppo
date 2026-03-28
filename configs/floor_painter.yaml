@@ -2,13 +2,14 @@
 
 # config: "default.yaml" # path to config
 exp_name: "full_rng" # the name of this experiment
+force_reload: false # if toggled force reloads arguments (tune.py automatically switches this flag to "True")
 seed: 1 # seed of the experiment
 torch_deterministic: true # if toggled, `torch.backends.cudnn.deterministic=False`
 cuda: true # if toggled, cuda will be enabled by default
-track: true # if toggled, this experiment will be tracked with Weights and Biases
+track: false # if toggled, this experiment will be tracked with Weights and Biases
 wandb_project_name: "FloorPainter_Test" # the wandb's project name
 wandb_entity: null # the entity (team) of wandb's project
-capture_video: true # whether to capture videos of the agent performances (check out `videos` folder)
+capture_video: false # whether to capture videos of the agent performances (check out `videos` folder)
 checkpoint_frequency: 50 # save agent every n update epochs
 
 # Algorithm specific arguments

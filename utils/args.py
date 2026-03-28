@@ -15,9 +15,11 @@ class RangeOptions:
 
 @dataclass
 class Args:
-    """---------------- Train ----------------"""
+    # ---------------- Train ---------------- #
     config: str = "default.yaml"
     """config file"""
+    force_reload: bool = False
+    """if toggled force reloads arguments (tune.py automatically switches this flag to "True")"""
     exp_name: str = os.path.basename(__file__)[: -len(".py")]
     """the name of this experiment"""
     seed: int = 1
@@ -81,7 +83,7 @@ class Args:
     num_iterations: int = 0
     """the number of iterations (computed in runtime)"""
 
-    """---------------- Tune ----------------"""
+    # ---------------- Tune ---------------- #
     script: str = "train.py"
     """training script to run"""
     metric: str = "charts/episodic_return"
@@ -144,6 +146,11 @@ def _get_args() -> Args:
 
     args.config = "configs/" + args.config
 
+    return args
+
+def force_reload() -> Args:
+    args = _get_args()
+    args.force_reload = True
     return args
 
 args = _get_args()

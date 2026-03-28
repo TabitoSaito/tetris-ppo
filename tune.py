@@ -25,6 +25,8 @@ tuner = Tuner(
     storage=args.storage
 )
 
+args.force_reload = True
+
 tuner.tune(
     num_trials=args.num_trials,
     num_seeds=args.num_seeds,

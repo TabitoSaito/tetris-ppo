@@ -9,13 +9,15 @@ import torch.optim as optim
 
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.args import args
+from utils.args import args, force_reload
 from utils.helper import make_env
 from models.agent import Agent
 import envs
 
 
 if __name__ == "__main__":
+    if args.force_reload:
+        args = force_reload()
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
     args.num_iterations = args.total_timesteps // args.batch_size
@@ -32,6 +34,7 @@ if __name__ == "__main__":
             monitor_gym=True,
             save_code=True,
         )
+
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
         "hyperparameters",
@@ -70,15 +73,16 @@ if __name__ == "__main__":
     next_obs = torch.Tensor(next_obs).to(device)
     next_done = torch.zeros(args.num_envs).to(device)
 
-    if wandb.run.resumed:
-        global_step = run.summary.get("charts/global_step") + 1
-        api = wandb.Api()
-        run = api.run(f"{run.entity}/{run.project}/{run.id}")
-        model = run.file("files/agent.pt")
-        model.download(f"wandb/{run_name}/")
-        agent.load_state_dict(torch.load(f"wandb/{run_name}/files/agent.pt", map_location=device))
-        agent.eval()
-        print(f"resumed at global step {global_step}")
+    if args.track:
+        if wandb.run.resumed:
+            global_step = run.summary.get("charts/global_step") + 1
+            api = wandb.Api()
+            run = api.run(f"{run.entity}/{run.project}/{run.id}")
+            model = run.file("files/agent.pt")
+            model.download(f"wandb/{run_name}/")
+            agent.load_state_dict(torch.load(f"wandb/{run_name}/files/agent.pt", map_location=device))
+            agent.eval()
+            print(f"resumed at global step {global_step}")
 
     for iteration in range(1, args.num_iterations + 1):
         # Annealing the rate if instructed to do so.
